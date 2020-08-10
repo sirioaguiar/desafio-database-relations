@@ -1,4 +1,5 @@
 import { getRepository, Repository, In } from 'typeorm';
+import AppError from '@shared/errors/AppError';
 
 import IProductsRepository from '@modules/products/repositories/IProductsRepository';
 import ICreateProductDTO from '@modules/products/dtos/ICreateProductDTO';
@@ -27,6 +28,8 @@ class ProductsRepository implements IProductsRepository {
       quantity,
     });
 
+    await this.ormRepository.save(product);
+
     return product;
   }
 
@@ -38,25 +41,42 @@ class ProductsRepository implements IProductsRepository {
     return findProduct;
   }
 
-  public async findAllById({ products }: IFindProducts[]): Promise<Product[]> {
-    let produtos: Product[];
+  public async findAllById(products: IFindProducts[]): Promise<Product[]> {
+    const productIds = products.map(product => product.id);
+    const findProducts = await this.ormRepository.find({
+      id: In(productIds),
+    });
 
-    if (products) {
-      produtos = await this.ormRepository.find({
-        where: {
-          produtos: In(products.id),
-        },
-      });
-    } else {
-      produtos = await this.ormRepository.find();
-    }
-    return produtos;
+    return findProducts;
   }
 
   public async updateQuantity(
     products: IUpdateProductsQuantityDTO[],
   ): Promise<Product[]> {
-    // TODO
+    const updateProduct = products.map(async product => {
+      let existingProduct = await this.ormRepository.findOne(product.id);
+      if (!existingProduct) {
+        throw new AppError('The product does not exist');
+      } else {
+        const newQuantity = existingProduct.quantity - product.quantity;
+        if (newQuantity < 0) {
+          throw new AppError(
+            `Quantity of  "${existingProduct.name} invalid"`,
+            400,
+          );
+        }
+        existingProduct = {
+          ...existingProduct,
+          quantity: newQuantity,
+        };
+      }
+      return existingProduct;
+    });
+
+    const updatedProducts = await Promise.all(updateProduct);
+    await this.ormRepository.save(updatedProducts);
+
+    return updatedProducts;
   }
 }
 

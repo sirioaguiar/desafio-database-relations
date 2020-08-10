@@ -36,6 +36,7 @@ describe('App', () => {
     await mainConnection.close();
   });
 
+  // OK
   it('should be able to create a new customer', async () => {
     const response = await request(app).post('/customers').send({
       name: 'Rocketseat',
@@ -49,7 +50,7 @@ describe('App', () => {
       }),
     );
   });
-
+  // OK
   it('should not be able to create a customer with one e-mail thats already registered', async () => {
     const customer = await request(app).post('/customers').send({
       name: 'Rocketseat',
@@ -71,6 +72,7 @@ describe('App', () => {
     expect(response.status).toBe(400);
   });
 
+  // OK
   it('should be able to create a new product', async () => {
     const response = await request(app).post('/products').send({
       name: 'Produto 01',
@@ -86,7 +88,7 @@ describe('App', () => {
       }),
     );
   });
-
+  // OK
   it('should not be able to create a duplicated product', async () => {
     const product = await request(app).post('/products').send({
       name: 'Produto 01',

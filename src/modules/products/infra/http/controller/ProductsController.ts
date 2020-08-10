@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 
 import CreateProductService from '@modules/products/services/CreateProductService';
+
 import { container } from 'tsyringe';
 
 export default class ProductsController {
@@ -14,7 +15,7 @@ export default class ProductsController {
       price,
       quantity,
     });
+
     return response.send(product);
-    // TODO
   }
 }
